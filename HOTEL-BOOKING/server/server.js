@@ -16,7 +16,17 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 // API to listen to Clerk Webhooks
-app.use("/api/clerk", clerkWebhooks);
+app.use("/api/clerk", (req, res, next) => {
+    console.log("Webhook endpoint hit:", req.method, req.url);
+    console.log("Headers:", req.headers);
+    next();
+}, clerkWebhooks);
+
+// Test endpoint to verify webhook is working
+app.post("/api/test-webhook", (req, res) => {
+    console.log("Test webhook received:", req.body);
+    res.json({success: true, message: "Test webhook received"});
+});
 
 app.use('/', (req, res) => res.send("API is working"));
 

@@ -4,6 +4,22 @@ import { Webhook } from "svix";
 
 const clerkWebhooks = async (req, res) => {
     try {
+        console.log("Webhook received:", req.body);
+        console.log("Headers:", req.headers);
+        
+        // Check if required headers are present
+        const requiredHeaders = ["svix-id", "svix-timestamp", "svix-signature"];
+        const missingHeaders = requiredHeaders.filter(header => !req.headers[header]);
+        
+        if (missingHeaders.length > 0) {
+            console.error("Missing required headers:", missingHeaders);
+            return res.status(400).json({
+                success: false, 
+                message: "Missing required headers",
+                missingHeaders: missingHeaders
+            });
+        }
+        
         // Create a Svix instance with clerk webhook secret.
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
@@ -23,34 +39,39 @@ const clerkWebhooks = async (req, res) => {
         const userData = {
             _id: data.id,
             username: data.first_name + " " + data.last_name,
-            email: data.email_address[0].email_address,
+            email: data.email_addresses[0].email_address,
             image: data.image_url,
         };
 
-        // Switch Cases for diffirent Events
+        console.log("Processing user data:", userData);
+
+        // Switch Cases for different Events
         switch (type) {
             case "user.created":{
-                await User.create(userData);
+                const newUser = await User.create(userData);
+                console.log("User created successfully:", newUser);
                 break;
             }
             case "user.updated":{
-                await User.findByIdAndUpdate(data.id, userData);
+                const updatedUser = await User.findByIdAndUpdate(data.id, userData, {new: true});
+                console.log("User updated successfully:", updatedUser);
                 break;
             }
             case "user.deleted":{
-                await User.findByIdAndDelete(data.id);
+                const deletedUser = await User.findByIdAndDelete(data.id);
+                console.log("User deleted successfully:", deletedUser);
                 break;
             }        
             default:
+                console.log("Unknown event type:", type);
                 break;
         }
         res.json({success: true, message: "Webhook Received"});
 
 
     } catch (error) {
-        console.log(error.message);
-        res.json({success: false, message: error.message});
-        
+        console.error("Webhook error:", error.message);
+        res.status(500).json({success: false, message: error.message});
     };  
 };
 
