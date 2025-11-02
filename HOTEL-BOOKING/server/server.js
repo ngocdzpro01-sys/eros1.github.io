@@ -1,5 +1,5 @@
 import express from "express";
-import "dotenv/config";llllllllllllll
+import "dotenv/config";
 import cors from "cors";
 import connectDB from "./configs/db.js";
 import { clerkMiddleware } from '@clerk/express'
