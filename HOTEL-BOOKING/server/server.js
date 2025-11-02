@@ -1,38 +1,38 @@
 import express from "express";
-import "dotenv/config";
+import "dotenv/config";llllllllllllll
 import cors from "cors";
-import connectDB from "./config/db.js";
+import connectDB from "./configs/db.js";
 import { clerkMiddleware } from '@clerk/express'
 import clerkWebhooks from "./controllers/clerkWebhooks.js";
+import userRouter from "./routes/userRoutes.js";
+import hotelRouter from "./routes/hotelRoutes.js";
+import connectCloudinary from "./configs/cloudinary.js";
+import roomRouter from "./routes/roomRoutes.js";
+import bookingRouter from "./routes/bookingRoutes.js";
 
 
 connectDB();
+connectCloudinary();
+
 
 const app = express();
-app.use(cors()); // Enable Cross-Origin Resource Sharing
 
+app.use(cors()); // Enable Cross-Origin Resource Sharing
 // Middleware
 app.use(express.json());
 
-// API to listen to Clerk Webhooks (bypass clerkMiddleware)
-app.use("/api/clerk", (req, res, next) => {
-    console.log("Webhook endpoint hit:", req.method, req.url);
-    console.log("Headers:", req.headers);
-    next();
-}, clerkWebhooks);
-
-// Apply clerkMiddleware to other routes
 app.use(clerkMiddleware());
 
-// Test endpoint to verify webhook is working
-app.post("/api/test-webhook", (req, res) => {
-    console.log("Test webhook received:", req.body);
-    res.json({success: true, message: "Test webhook received"});
-});
+// API to listen to Clerk Webhooks 
+app.use("/api/clerk", clerkWebhooks);
 
-app.use('/', (req, res) => res.send("API is working"));
+app.get("/", (req, res) => res.send("API is working"));
+app.use('/api/user', userRouter);
+app.use('/api/hotels', hotelRouter);
+app.use('/api/rooms', roomRouter);
+app.use('/api/bookings', bookingRouter);
 
-app.get("/", (req, res)=> res.send("API is working"));
+
 
 const PORT = process.env.PORT || 3000;
 

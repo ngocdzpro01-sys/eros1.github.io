@@ -1,17 +1,54 @@
-<svg width="165" height="35" viewBox="0 0 165 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    text {
-      font-family: 'Trebuchet MS', sans-serif;
-      font-size: 20px;
-      fill: white;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-  </style>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 850 263.5">
 
-  <text x="30" y="25">TL-Stay</text>
+  <defs>
+    <style>
+      /* Màu đảo sáng hơn để nổi bật trên nền tối */
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5 { stroke-width: 0px; }
+      .cls-1, .cls-5 { fill: #0cdbf6; }
+      .cls-3 { fill: #4c4c4c; }
+      .cls-4 { fill: #faf3a9; }
+      .cls-5 { fill-rule: evenodd; }
 
-  <path fill-rule="evenodd" clip-rule="evenodd"
-    d="M0.70092 11.8607C8.04663e-08 13.1412 0 14.6859 0 17.7753V19.8288C0 25.0948 1.60933e-07 27.728 1.58162 29.3639C3.16325 31 5.70883 31 10.8 31H16.2C21.2911 31 23.8368 31 25.4183 29.3639C27 27.728 27 25.0948 27 19.8288V17.7753C27 14.6859 27 13.1412 26.2991 11.8607C25.5982 10.5802 24.3177 9.78544 21.7566 8.19596L19.0566 6.52027C16.3493 4.84009 14.9957 4 13.5 4C12.0043 4 10.6507 4.84009 7.94344 6.52027L5.24344 8.19598C2.68238 9.78544 1.40184 10.5802 0.70092 11.8607ZM10.0529 22.0866C9.6037 21.7536 8.96958 21.8478 8.63659 22.2971C8.30361 22.7464 8.39784 23.3805 8.84708 23.7134C10.1598 24.6865 11.7653 25.2625 13.5 25.2625C15.2347 25.2625 16.8402 24.6865 18.1529 23.7134C18.6022 23.3805 18.6964 22.7464 18.3634 22.2971C18.0305 21.8478 17.3964 21.7536 16.9471 22.0866C15.9637 22.8154 14.777 23.2375 13.5 23.2375C12.223 23.2375 11.0363 22.8154 10.0529 22.0866Z"
-    fill="white" />
+      text {
+        font-family: Montserrat, sans-serif;
+        font-size: 150px;
+        font-weight: 650;
+        letter-spacing: -2;
+      }
+    </style>
+
+    <!-- Gradient cho dấu "-" -->
+    <linearGradient id="dashGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FAF3A9"/>
+      <stop offset="100%" stop-color="#0CDBF6"/>
+    </linearGradient>
+  </defs>
+
+  <g id="Layer_1-2" data-name="Layer 1">
+    <!-- Biểu tượng -->
+    <g>
+      <path class="cls-3"
+        d="M236.68,252.63c-1,0-1.81-.81-1.81-1.81V30.53c0-1,.81-1.81,1.81-1.81s1.81.81,1.81,1.81v220.28c0,1-.81,1.81-1.81,1.81Z"/>
+      <g>
+        <polygon class="cls-4"
+          points="0 48.13 0 53.41 48.62 67.92 48.62 239.06 74.55 239.06 74.55 48.13 0 48.13"/>
+        <path class="cls-5"
+          d="M187.02,2.51c1.56-2.27-.48-3.59-2.41-1.35-28.16,32.78-84.61,105.64-96.84,169.32-2.82,14.7-3.6,28.44-.51,42.02,2.94,12.96,13.17,28.24,33.96,28.93,35.28,1.18,63.86-39.62,85.62-97.97.39-1.04-1-1.79-1.48-.79-23.92,49.95-62.08,82.61-82.49,72.83-33.65-16.13,6.07-128.57,64.16-213Z"/>
+      </g>
+    </g>
+
+    <!-- ===== Chữ “TL-Stay” ===== -->
+    <g transform="translate(260, 200)">
+      <!-- TL -->
+      <text x="0" y="0" fill="#ffffff">TL</text>
+      <!-- dấu "-" với gradient -->
+      <text x="185" y="0" fill="url(#dashGradient)">-</text>
+      <!-- Stay -->
+      <text x="250" y="0" fill="#ffffff">Stay</text>
+    </g>
+
+  </g>
 </svg>
