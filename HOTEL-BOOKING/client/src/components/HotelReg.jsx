@@ -8,16 +8,22 @@ const HotelReg = () => {
     const {setShowHotelReg, axios, getToken, setIsOwner} = useAppContext();
 
     const [name, setName] = useState("")
-    const [address, setAdress] = useState("")
+    const [address, setAddress] = useState("")
     const [contact, setContact] = useState("")
     const [city, setCity] = useState("")
 
-    const onSubmitHandler = async ( event) => {
+    const onSubmitHandler = async (event) => {
         try {
             event.preventDefault();
 
-            const {data} = await axios.post('/api/hotels/', {name, address, contact, city}, {
-                headers: { Authorization: `Bearer ${await getToken()}` }
+            const token = await getToken({ template: 'backend' });
+            if (!token) {
+                toast.error("Bạn cần đăng nhập để tiếp tục");
+                return;
+            }
+
+            const {data} = await axios.post(`/api/hotels/`, {name, contact, address, city}, {
+                headers: { Authorization: `Bearer ${token}` }
             })
 
             if(data.success){
@@ -28,7 +34,7 @@ const HotelReg = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "An error occurred");
+            toast.error(error.message);
         }
     }
 
@@ -71,7 +77,7 @@ const HotelReg = () => {
                     <label htmlFor="address" className='font-bold text-gray-500'>
                         Địa chỉ
                     </label>
-                    <input id='address' onChange={(e)=> setAdress(e.target.value)}
+                    <input id='address' onChange={(e)=> setAddress(e.target.value)}
                     value={address} type="text" placeholder= "Nhập vào đây" className='border
                     border-gray-200 rounded w-full px-3 py-2.5 mt-1 outline-indigo-500
                     text-sm text-gray-500 font-light'required/>

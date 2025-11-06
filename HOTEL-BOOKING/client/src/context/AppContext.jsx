@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import {useUser, useAuth} from "@clerk/clerk-react";
@@ -23,12 +23,18 @@ export const AppProvider = ({ children }) => {
 
     const fetchUser = async () => {
         try {
+            const token = await getToken({ template: 'backend' });
+            if (!token) {
+                // wait for Clerk to finish loading session
+                setTimeout(fetchUser, 1000);
+                return;
+            }
             const {data} = await axios.get('/api/user', {
-                headers: { Authorization: `Bearer ${await getToken()}` }
+                headers: { Authorization: `Bearer ${token}` }
             });
             if(data.success){
                 setIsOwner(data.role === "hotelOwner");
-                setSearchedCities(data.recentSearchedCities || []);
+                setSearchedCities(data.recentSearchedCities);
             } else {
                 // Retry Fetching user after 5 seconds
                 setTimeout(() =>{
@@ -63,5 +69,5 @@ export const AppProvider = ({ children }) => {
 };
 
 
-export const useAppContext = () => useContext(AppContext);
+export const useAppContext = ()=> useContext(AppContext);
 

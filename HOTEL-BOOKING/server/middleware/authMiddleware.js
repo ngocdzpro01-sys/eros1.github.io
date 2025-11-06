@@ -1,9 +1,23 @@
 import User from "../models/User.js";
+import { getAuth } from "@clerk/express";
+
 
 // Middle to check if user is authenticated
 export const protect = async (req, res, next) => {
     try {
-        const { userId } = req.auth || {};
+        // TEMP LOGS: remove after debugging
+        console.log("[protect] Auth header present:", !!req.headers.authorization, req.headers.authorization?.slice(0, 25));
+        const gaForLog = getAuth(req);
+        console.log("[protect] getAuth(req) -> userId:", gaForLog?.userId);
+
+        // Try Clerk getAuth helper first
+        let { userId } = getAuth(req) || {};
+
+        // Fallback to middleware-provided req.auth or function API
+        if (!userId) {
+            const auth = typeof req.auth === "function" ? await req.auth() : req.auth;
+            userId = auth?.userId;
+        }
         if (!userId) {
             return res.status(401).json({ success: false, message: "Not authenticated" });
         }

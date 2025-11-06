@@ -1,11 +1,65 @@
-import React , { useState } from 'react'
+import React , { useState, useEffect} from 'react'
 import { roomsDummyData } from '../../assets/assets';
 import Title from '../../components/Title';
-
+import { useAppContext } from '../../context/AppContext';
+import { toast } from 'react-hot-toast';
 
 const ListRoom = () => {
 
-  const [rooms, setRooms] = useState(roomsDummyData);
+  const [rooms, setRooms] = useState([]);
+
+  const {axios, getToken, user} = useAppContext();
+
+
+  // Fetch rooms of the Hotel Owner
+  const fetchRooms = async () => {
+    try {
+      const token = await getToken({ template: 'backend' });
+      const {data} = await axios.get('/api/rooms/owner', {
+        headers: {
+          Authorization: `Bearer ${token}`}})
+          if(data.success){
+            setRooms(data.rooms);
+          } else {
+            toast.error(data.message);
+          }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  // Toggle Availability of the Room
+const toggleRoomAvailability = async (roomId) => {
+  try {
+    const token = await getToken({ template: 'backend' }); 
+    const { data } = await axios.post(
+      '/api/rooms/toggle-availability',
+      { roomId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      fetchRooms(); 
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    toast.error(error.message);
+  }
+};
+
+  useEffect(() => {
+    if(user){
+      fetchRooms();
+    }
+  }, [user])
+
+  
 
   return (
     <div>
@@ -44,13 +98,8 @@ const ListRoom = () => {
                         text-center'>
                             <label className='relative inline-flex items-center cursor-pointer
                             text-gray-900 gap-3'>
-                                <input type='checkbox' className='sr-only' checked={item.isAvailable}
-                                onChange={() => {
-                                  const updatedRooms = rooms.map((room, i) =>
-                                    i === index ? { ...room, isAvailable: !room.isAvailable } : room
-                                  );
-                                  setRooms(updatedRooms);
-                                }}/>
+                                <input onChange={() => toggleRoomAvailability(item._id)} 
+                                type='checkbox' className='sr-only' checked={item.isAvailable}/>
                                 <div className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${
                                   item.isAvailable ? 'bg-blue-600' : 'bg-slate-300'
                                 }`}>

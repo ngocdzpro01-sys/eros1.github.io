@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import Title from '../../components/Title'
 import {assets} from '../../assets/assets'
+import { useAppContext } from '../../context/AppContext'
+import { toast } from 'react-hot-toast'
+
 const AddRoom = () => {
+
+  const {axios, getToken} = useAppContext();
 
   const [images, setImages] = useState({
     1: null,
@@ -21,15 +26,80 @@ const AddRoom = () => {
     },
   });
 
+  const [loading, setLoading] = useState(false);
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    // Check if all inputs are filled
+    if(!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some((image) => image)) {
+        toast.error("Vui lượng điền đầy đủ thông tin phòng");
+        return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('roomType', inputs.roomType);
+      formData.append('pricePerNight', inputs.pricePerNight);
+
+      // Converting amenities to array & keeping only enabled amenities
+
+      const amenities = Object.keys(inputs.amenities).filter((key) => inputs.amenities[key]);
+      formData.append('amenities', JSON.stringify(amenities));
+
+
+      // Adding images to form data
+      Object.keys(images).forEach((key) => {
+        images[key] && formData.append('images', images[key]);
+      });
+
+      const token = await getToken({ template: 'backend' });
+      const {data} = await axios.post('/api/rooms', formData, {headers:
+        {Authorization: `Bearer ${token}`}
+      });
+        
+        if (data.success) {
+          toast.success(data.message);
+          setInputs({
+            roomType: '',
+            pricePerNight: 0,
+            amenities: {
+              'Room Service': false,
+              'Free Breakfast': false,
+              'Free WiFi': false,
+              'Mountain View': false,
+              'Pool Access': false,
+            },
+          })
+          setImages({
+            1: null,
+            2: null,
+            3: null,
+            4: null,
+          });
+        } else {
+          toast.error(data.message);
+        }
+
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+  }
+}
+
   return (
-    <form>
+    <form onSubmit={onSubmitHandler}>
         <Title align='left' font='Be Vietnam Pro' title='Thêm phòng' subTitle='Hãy điền thông tin một cách cẩn thận và chính xác bao gồm chi tiết phòng, giá cả và tiện nghi để mang đến trải nghiệm đặt phòng tốt nhất cho người dùng.' />
         {/* Upload Area for images */}
         <p className='text-gray-800 mt-10'>Images</p>
         <div className='grid grid-cols-2 sm:flex gap-4 my-2 flex-wrap'>
           {Object.keys(images).map((key)=>(
             <label htmlFor={`roomImage${key}`} key={key}>
-              <img src={images[key] ? URL.createObjectURL(images[key]) : assets.uploadArea} alt="" />
+              <img
+                src={images[key] ? URL.createObjectURL(images[key]) : assets.uploadArea}
+                alt=""
+                className='w-32 h-24 object-cover rounded border border-gray-200'
+              />
               <input type="file" accept='image/*' id={`roomImage${key}`} hidden
               onChange={e=> setImages({...images, [key]: e.target.files[0]})} />
             </label>
@@ -71,8 +141,8 @@ const AddRoom = () => {
             ))}
         </div>
         <button className='bg-primary text-white px-8 py-2 rounded mt-8
-        cursor-pointer'>
-            Thêm phòng
+        cursor-pointer' disabled={loading}>
+            { loading ? 'Adding...' : "Thêm phòng"}
         </button>
 
     </form>
