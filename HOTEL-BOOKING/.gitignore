@@ -1,1 +1,9 @@
-node_modules 
+node_modules server/.env
+.env
+node_modules/
+client/node_modules/
+server/node_modules/
+dist/
+build/
+.DS_Store
+.vscode/

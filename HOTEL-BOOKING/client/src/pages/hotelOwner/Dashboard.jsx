@@ -5,6 +5,7 @@ import { useAppContext } from '../../context/AppContext'
 
 const Dashboard = () => {
 
+    
     const {currency, user, getToken, toast, axios} = useAppContext();
     const [dashboardData, setDashboardData] = useState({
         bookings: [],
@@ -13,17 +14,21 @@ const Dashboard = () => {
     });
 
     const fetchDashboardData = async () => {
+        const token = await getToken({ template: 'backend' });
         try {
+            
             const {data} = await axios.get('/api/bookings/hotel', {
                 
             headers: {
             Authorization: `Bearer ${token}`
+            }})
+            if(data.success){
+                setDashboardData(data.dashboardData);
+            }else{
+                toast.error(data.message);
             }
-      
-                
-        })
         } catch (error) {
-            
+            toast.error(error.message);
         }
     }
 
@@ -49,7 +54,7 @@ const Dashboard = () => {
                 className='max-sm:hidden h-10' />
                 <div className='flex flex-col sm:ml-4 font-bold'>
                     <p className='text-blue-500 text-lg font-lora'>Tổng doanh thu</p>
-                    <p className='text-neutral-400 text-base'>$ {dashboardData.totalRevenue}</p>
+                    <p className='text-neutral-400 text-base'>{currency} {dashboardData.totalRevenue}</p>
                 </div>
             </div>
         </div>
@@ -88,7 +93,7 @@ const Dashboard = () => {
 
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300
                             text-center'>
-                               $ {item.totalPrice}
+                               {currency} {item.totalPrice}
                             </td>
 
                             <td className='py-3 px-4 border-t border-gray-300 flex'>

@@ -1,3 +1,4 @@
+import transporter from "../configs/nodemailer.js";
 import Booking from "../models/Booking.js";
 import Room from "../models/Room.js";
 import Hotel from "../models/Hotel.js";
@@ -5,18 +6,18 @@ import Hotel from "../models/Hotel.js";
 
 // Function to check Availability of Room
 
-const checkAvailability = async ({checkInDate, checkOutDate, roomId}) =>{
+const checkAvailability = async ({checkInDate, checkOutDate, room}) =>{
 
     try {
         const bookings = await Booking.find({
-            room: roomId,
+            room: room,
             checkInDate: {$lte: checkOutDate},
             checkOutDate: {$gte: checkInDate},
         });
         const isAvailable = bookings.length === 0;
         return isAvailable;
     } catch (error) {
-        console.log(error.message);
+        throw error; // rethrow so caller can handle/log properly
     }
     
 }
@@ -38,11 +39,19 @@ export const checkAvailabilityAPI = async (req, res)=>{
 // Post /api/bookings/book
 export const createBooking = async (req, res) =>{
     try {
-        const {room, checkInDate, checkOutDate, guest} = req.body;
+        // Accept both `guest` and `guests` keys and both PaymentMethod / paymentMethod
+        const {room, checkInDate, checkOutDate, guest, guests, PaymentMethod, paymentMethod} = req.body;
         const user = req.user._id;
 
-        // Before Booking Check Availability
+        // Validate required fields
+        if(!room || !checkInDate || !checkOutDate){
+            return res.status(400).json({success: false, message: "Missing required booking fields"});
+        }
 
+        const finalGuests = Number(guests ?? guest ?? 1);
+        const finalPaymentMethod = paymentMethod ?? PaymentMethod ?? "Pay At Hotel";
+
+        // Before Booking Check Availability
         const isAvailable = await checkAvailability({
             checkInDate, checkOutDate, room
         });
@@ -53,6 +62,10 @@ export const createBooking = async (req, res) =>{
 
         // get total price for room
         const roomData = await Room.findById(room).populate("hotel");
+        if(!roomData){
+            return res.status(404).json({success: false, message: "Room not found"});
+        }
+
         let totalPrice = roomData.pricePerNight;
 
         // calculate total price
@@ -63,15 +76,43 @@ export const createBooking = async (req, res) =>{
         totalPrice *= nights;
 
         const booking =await Booking.create({
-            user, room, hotel: roomData.hotel._id, guests: guest, checkInDate, checkOutDate, totalPrice
+            user,
+            room,
+            hotel: roomData.hotel._id,
+            guests: finalGuests,
+            checkInDate,
+            checkOutDate,
+            totalPrice,
+            paymentMethod: finalPaymentMethod
         });
 
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL || process.env.SMTP_EMAIL || `no-reply@${process.env.DOMAIN || 'example.com'}`,
+            to: req.user.email,
+            subject: 'Thông tin booking khách sạn',
+            html: `
+                <h2>Thông tin booking của bạn</h2>
+                <p>Thân gửi ${req.user.username},</p>
+                <p>Cảm ơn bạn đã đặt phòng! Đây là thông tin của bạn:</p>
+                <ul>
+                    <li><strong>Booking ID:</strong> ${booking._id}</li>
+                    <li><strong>Tên khách sạn:</strong> ${roomData.hotel.name}</li>
+                    <li><strong>Địa chỉ:</strong> ${roomData.hotel.address}</li>
+                    <li><strong>Lịch đặt: </strong> ${booking.checkInDate.toDateString()}</li>
+                    <li><strong>Tổng:</strong> ${process.env.CURRENCY || '$'} ${booking.totalPrice}</li>
+                </ul>
+                <p>Chúng tôi rất mong được chào đón bạn!</p>
+                <p>Nếu bạn cần bất cứ thay đổi gì, hãy thoải mái liên lạc với chúng tôi.</p>
+            `
+        }
+
+        // Send confirmation email, but do not fail booking if email sending fails
+        await transporter.sendMail(mailOptions).catch(() => {});
+
         res.json({success: true, message: "Booking created successfully", booking});
-        
 
     } catch (error) {
-        console.log(error);
-        res.json({success: false, message: "Failed to create booking"});
+        res.status(500).json({success: false, message: "Failed to create booking", error: error.message});
     }
 };
 
@@ -106,3 +147,6 @@ export const getHotelBookings = async (req, res) => {
         res.json({success: false, dashboardData: "Failed to fetch bookings"});
     }
 };
+
+
+

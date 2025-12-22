@@ -3,15 +3,11 @@ import { Webhook } from "svix";
 
 const clerkWebhooks = async (req, res) => {
     try {
-        console.log("Webhook received:", req.body);
-        console.log("Headers:", req.headers);
-        
         // Check if required headers are present
         const requiredHeaders = ["svix-id", "svix-timestamp", "svix-signature"];
         const missingHeaders = requiredHeaders.filter(header => !req.headers[header]);
         
         if (missingHeaders.length > 0) {
-            console.error("Missing required headers:", missingHeaders);
             return res.status(400).json({
                 success: false, 
                 message: "Missing required headers",
@@ -41,9 +37,6 @@ const clerkWebhooks = async (req, res) => {
             email: data.email_addresses[0].email_address,
             image: data.image_url,
         };
-
-        console.log("Processing user data:", userData);
-
         // Switch Cases for different Events
         switch (type) {
             case "user.created":{

@@ -1,13 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { assets, facilityIcons, roomsDummyData } from '../assets/assets'
-import { useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import StarRating from '../components/StarRating';
+import { useAppContext } from '../context/AppContext'
 
-const CheckBox = ({label, selected = false, onChange = () => { }})=>{
+const CheckBox = ({label, value = label, selected = false, onChange = () => { }})=>{
     return (
         <label className='flex gap-3 items-center cursor-pointer mt-2 text-sm'>
             <input type="checkbox" checked={selected} onChange={(e)=> 
-            onChange(e.target.checked, label)}/>
+            onChange(e.target.checked, value)}/>
             <span className='font-light select-none'>{label}</span>
         </label>
     )
@@ -24,14 +25,22 @@ const RadioButton = ({label, selected = false, onChange = () => { }})=>{
 }
 
 const AllRooms = () => {
-    const navigate = useNavigate();
+
+    const [searchParams, setSearchParams] = useSearchParams({});
+    const {rooms, navigate, currency} = useAppContext();
+
     const[openFilters, setOpenFilters] = useState(false);
+    const [selectedFilters, setSelectedFilters] = useState({
+        roomType: [],
+        priceRange: [],
+    });
+    const [selectedSort, setSelectedSort] = useState('');
 
     const roomTypes = [
-        "1 Giường",
-        "2 Giường",
-        "Phòng Sang Trọng",
-        "Phòng Gia Đình"
+        { label: "1 Giường", value: "Single Bed" },
+        { label: "2 Giường", value: "Double Bed" },
+        { label: "Phòng Sang Trọng", value: "Luxury Room" },
+        { label: "Phòng Gia Đình", value: "Family Suite" }
     ];
 
     const priceRanges = [
@@ -47,6 +56,77 @@ const AllRooms = () => {
         "Mới Nhất",
     ];
 
+    // Handle changes for filters and sorting
+
+    const handleFilterChange = (checked, value, type) => {
+        setSelectedFilters((prevFilters) => {
+            const prevArray = prevFilters[type] || [];
+            return {
+                ...prevFilters,
+                [type]: checked ? [...prevArray, value] : prevArray.filter(item => item !== value)
+            };
+        });
+    }
+
+    const handleSortChange = (sortOption) => {
+        setSelectedSort(sortOption);
+    }
+
+    // Function to check if a room matches the selected room types
+
+    const matchesRoomType = (room) => {
+        return selectedFilters.roomType.length === 0 || selectedFilters.roomType.includes(room.roomType);
+    }
+
+    // Function to check if a room matches the selected price ranges
+
+    const matchesPriceRange = (room) => {
+        return selectedFilters.priceRange.length === 0 || selectedFilters.priceRange.some((range) => {
+            const [min, max] = range.split(' to ').map(Number);
+            return room.pricePerNight >= min && room.pricePerNight <= max;
+        });
+    }
+
+    // Function to sort rooms based on selected sort option
+    const sortRooms = (a, b)=>{
+        if(selectedSort === "Giá tăng dần"){
+            return a.pricePerNight - b.pricePerNight;
+        }
+        if(selectedSort === "Giá giảm dần"){
+            return b.pricePerNight - a.pricePerNight;
+        }
+        if(selectedSort === "Mới Nhất"){
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        return 0;
+    }
+
+    //  Filter Destination
+    const filterDestination = (room) => {
+        const destination = searchParams.get('destination');
+        if(!destination){
+            return true;
+        }
+        return room.hotel.city.toLowerCase().includes(destination.toLowerCase());
+    }
+
+    // Filter and sort rooms based on the selected filters and sort option
+    const filteredRooms = useMemo(()=>{
+        return rooms.filter((room) => matchesRoomType(room) 
+        && matchesPriceRange(room) && filterDestination(room)).sort(sortRooms);
+
+    }, [rooms, selectedFilters, selectedSort, searchParams]);
+
+
+    // Clear all filters
+    const clearFilters = () => {
+        setSelectedFilters({
+            roomType: [],
+            priceRange: [],
+        });
+        setSelectedSort('');
+        setSearchParams({});
+    }
 
 
   return (
@@ -60,7 +140,7 @@ const AllRooms = () => {
             để làm cho kỳ nghỉ của bạn thêm trọn vẹn và đọng lại những kỷ niệm khó quên.</p>
         
 
-        {roomsDummyData.map((room)=>(
+        {filteredRooms.map((room)=>(
             <div key={room._id} className='flex flex-col md:flex-row items-start py-10 gap-6
             border-b border-gray-300 last:pb-30 last:border-0'>
                 <img onClick={()=> {navigate(`/rooms/${room._id}`); scrollTo(0,0)}}
@@ -87,7 +167,7 @@ const AllRooms = () => {
                         {room.amenities.map((item, index)=>(
                             <div key={index} className='flex items-center gap-2
                             px-3 py-2 rounded-lg bg-gray-100'>
-                                <img src={facilityIcons[item]} alt="{item}"
+                                <img src={facilityIcons[item]} alt={item}
                                 className='w-5 h-5' />
                                 <p className='text-xs'>{item}</p>
                             </div>
@@ -122,7 +202,8 @@ const AllRooms = () => {
                         Filters hay dùng
                     </p>
                     {roomTypes.map((room, index)=>(
-                        <CheckBox key={index} label={room}/>
+                        <CheckBox key={index} label={room.label} value={room.value} selected={selectedFilters.roomType.includes(room.value)}
+                        onChange={(checked)=>handleFilterChange(checked, room.value, 'roomType')}/>
                     ))}
                 </div>
                 <div className='px-5 pt-5'>
@@ -130,7 +211,8 @@ const AllRooms = () => {
                         Khoảng giá
                     </p>
                     {priceRanges.map((range, index)=>(
-                        <CheckBox key={index} label={`$ ${range}`}/>
+                        <CheckBox key={index} label={`${currency} ${range}`} selected={selectedFilters.priceRange.includes(range)}
+                        onChange={(checked)=>handleFilterChange(checked, range, 'priceRange')}/>
                     ))}
                 </div>
                 <div className='px-5 pt-5 pb-7'>
@@ -138,7 +220,10 @@ const AllRooms = () => {
                         Sắp xếp
                     </p>
                     {sortOptions.map((option, index)=>(
-                        <RadioButton key={index} label={option}/>
+                        <RadioButton key={index} label={option} selected={selectedSort
+                        === option}
+                        onChange={(checked)=>handleSortChange(option)
+                        }/>
                     ))}
                 </div>
 

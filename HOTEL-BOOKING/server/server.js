@@ -1,6 +1,5 @@
 import express from "express";
 import "dotenv/config";
-console.log('CLERK_SECRET_KEY set:', !!process.env.CLERK_SECRET_KEY)
 import cors from "cors";
 import connectDB from "./configs/db.js";
 import { clerkMiddleware } from '@clerk/express'
@@ -37,5 +36,5 @@ app.use('/api/bookings', bookingRouter);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {});
 

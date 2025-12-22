@@ -5,10 +5,7 @@ import { getAuth } from "@clerk/express";
 // Middle to check if user is authenticated
 export const protect = async (req, res, next) => {
     try {
-        // TEMP LOGS: remove after debugging
-        console.log("[protect] Auth header present:", !!req.headers.authorization, req.headers.authorization?.slice(0, 25));
         const gaForLog = getAuth(req);
-        console.log("[protect] getAuth(req) -> userId:", gaForLog?.userId);
 
         // Try Clerk getAuth helper first
         let { userId } = getAuth(req) || {};
