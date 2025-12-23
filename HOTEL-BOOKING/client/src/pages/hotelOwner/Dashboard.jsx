@@ -2,11 +2,13 @@ import React, { useState } from 'react'
 import Title from '../../components/Title'
 import { assets } from '../../assets/assets'
 import { useAppContext } from '../../context/AppContext'
+import { useEffect } from 'react'
+import { toast } from 'react-hot-toast'
 
 const Dashboard = () => {
 
     
-    const {currency, user, getToken, toast, axios} = useAppContext();
+    const {currency, user, getToken, axios, isOwner} = useAppContext();
     const [dashboardData, setDashboardData] = useState({
         bookings: [],
         totalBookings: 0,
@@ -23,7 +25,12 @@ const Dashboard = () => {
             Authorization: `Bearer ${token}`
             }})
             if(data.success){
-                setDashboardData(data.dashboardData);
+                // server returns dashboardData and bookings separately
+                setDashboardData({
+                    bookings: data.bookings || [],
+                    totalBookings: data.dashboardData?.totalBookings || 0,
+                    totalRevenue: data.dashboardData?.totalRevenue || 0,
+                });
             }else{
                 toast.error(data.message);
             }
@@ -31,6 +38,12 @@ const Dashboard = () => {
             toast.error(error.message);
         }
     }
+
+    useEffect(() => {
+        if (user && isOwner) {
+            fetchDashboardData();
+        }
+    }, [user, isOwner])
 
   return (
     <div>
