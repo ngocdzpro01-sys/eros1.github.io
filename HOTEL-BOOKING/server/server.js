@@ -17,7 +17,20 @@ connectCloudinary();
 
 const app = express();
 
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+// Enable Cross-Origin Resource Sharing with a whitelist for the frontend
+const allowedOrigins = [process.env.CLIENT_URL || 'https://btlweb-pi.vercel.app', 'https://btlweb-pi.vercel.app'];
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin like mobile apps or curl
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS policy: This origin is not allowed'));
+  },
+  credentials: true,
+}));
+
+// Respond to preflight requests
+app.options('*', cors());
 
 // API to listen to Stripe Webhooks
 app.post('/api/stripe', express.raw({type: 'application/json'}), stripeWebhooks);
