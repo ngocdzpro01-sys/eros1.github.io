@@ -3,28 +3,38 @@ import Title from '../components/Title'
 import { assets } from '../assets/assets'
 import {useAppContext} from '../context/AppContext'
 import { useEffect } from 'react'
+import { toast } from 'react-hot-toast'
+
 const MyBookings = () => {
 
     const {axios, getToken, user} = useAppContext();
 
     const[bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const fetchUserBookings = async ()=>{
+        setLoading(true);
         try {
+            const token = await getToken({ template: 'backend' });
             const {data} = await axios.get('/api/bookings/user', 
             {
                 headers: {
-                    Authorization: `Bearer ${await getToken({ template: 'backend' })}`
+                    Authorization: `Bearer ${token}`
                 }
             }
             )
+            // debug log to help diagnose missing bookings
+            console.debug('GET /api/bookings/user response:', data);
             if(data.success){
-                setBookings(data.bookings);
-            }else(
-                toast.error(data.message)
-            )
+                setBookings(data.bookings || []);
+            }else{
+                toast.error(data.message || 'Không thể tải lịch sử đặt phòng');
+            }
         } catch (error) {
-            toast.error(error.message);
+            console.error('Failed to fetch bookings', error);
+            toast.error(error.message || 'Lỗi khi lấy lịch sử đặt phòng');
+        } finally {
+            setLoading(false);
         }
     }
 
