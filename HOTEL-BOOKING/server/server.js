@@ -17,7 +17,30 @@ connectCloudinary();
 
 const app = express();
 
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+// Configure CORS to allow requests from client origins (and handle preflight)
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'https://btlweb-p1nsdq9oc-ngocdzpro01s-projects.vercel.app',
+  'https://eros1-github-io.vercel.app'
+];
+
+app.use(cors({
+  origin: function(origin, callback){
+    // allow requests with no origin (e.g., server-to-server, curl)
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin) !== -1){
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','Accept']
+}));
+
+// Ensure preflight requests are answered
+app.options('*', cors());
+
 // API to listen to Stripe Webhooks
 app.post('/api/stripe', express.raw({type: 'application/json'}), stripeWebhooks);
 // Middleware
