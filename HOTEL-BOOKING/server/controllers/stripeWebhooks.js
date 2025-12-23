@@ -2,7 +2,7 @@ import stripe from "stripe";
 
 // api to handle stripe webhooks
 
-export const stripeWebhooks = async (requestAnimationFrame, response) => {
+export const {stripeWebhooks} = async (requestAnimationFrame, response) => {
     // stripe gateway initialize
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
     const sig = requestAnimationFrame.headers['stripe-signature'];
