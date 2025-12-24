@@ -9,6 +9,7 @@ import hotelRouter from "./routes/hotelRoutes.js";
 import connectCloudinary from "./configs/cloudinary.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import offerRouter from "./routes/offerRoutes.js";
 import stripeWebhooks from "./controllers/stripeWebhooks.js";
 
 connectDB();
@@ -91,6 +92,7 @@ app.use('/api/user', userRouter);
 app.use('/api/hotels', hotelRouter);
 app.use('/api/rooms', roomRouter);
 app.use('/api/bookings', bookingRouter);
+app.use('/api/offers', offerRouter);
 
 // Catch-all error handler — ensures responses include CORS headers
 app.use((err, req, res, next) => {
