@@ -101,13 +101,15 @@ const AllRooms = () => {
         return 0;
     }
 
-    //  Filter Destination
+    //  Filter Destination (use trimmed, case-insensitive exact match to avoid partial matches)
     const filterDestination = (room) => {
-        const destination = searchParams.get('destination');
+        let destination = searchParams.get('destination') || '';
+        destination = destination.trim().toLowerCase();
         if(!destination){
             return true;
         }
-        return room.hotel.city.toLowerCase().includes(destination.toLowerCase());
+        const city = (room.hotel.city || '').toString().trim().toLowerCase();
+        return city === destination;
     }
 
     // Filter and sort rooms based on the selected filters and sort option
