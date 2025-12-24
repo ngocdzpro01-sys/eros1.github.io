@@ -107,6 +107,7 @@ const toggleRoomAvailability = async (roomId) => {
       if (data.success) {
         toast.success('Khách sạn đã được xóa');
         setHotel(null);
+        setRooms([]);
       } else {
         toast.error(data.message);
       }
