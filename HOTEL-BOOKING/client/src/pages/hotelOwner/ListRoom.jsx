@@ -77,6 +77,53 @@ const toggleRoomAvailability = async (roomId) => {
     }
   }, [user])
 
+  const [editingRoom, setEditingRoom] = useState(null);
+  const [roomForm, setRoomForm] = useState({ roomType: '', pricePerNight: '', amenities: '' });
+
+  const openEditRoom = (room) => {
+    setEditingRoom(room);
+    setRoomForm({ roomType: room.roomType || '', pricePerNight: room.pricePerNight || '', amenities: (room.amenities || []).join(', ') });
+  }
+
+  const handleRoomChange = (e) => {
+    const { name, value } = e.target;
+    setRoomForm(prev => ({ ...prev, [name]: value }));
+  }
+
+  const saveRoom = async () => {
+    if(!editingRoom) return;
+    try {
+      const token = await getToken({ template: 'backend' });
+      const payload = { roomType: roomForm.roomType, pricePerNight: Number(roomForm.pricePerNight), amenities: roomForm.amenities.split(',').map(s=>s.trim()) };
+      const { data } = await axios.put(`/api/rooms/${editingRoom._id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      if (data.success) {
+        toast.success('Cập nhật phòng thành công');
+        setEditingRoom(null);
+        fetchRooms();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Lỗi khi cập nhật phòng');
+    }
+  }
+
+  const deleteRoomById = async (roomId) => {
+    if(!confirm('Bạn có chắc muốn xóa phòng này?')) return;
+    try {
+      const token = await getToken({ template: 'backend' });
+      const { data } = await axios.delete(`/api/rooms/${roomId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (data.success) {
+        toast.success('Phòng đã được xóa');
+        fetchRooms();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Lỗi khi xóa phòng');
+    }
+  }
+
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditForm(prev => ({ ...prev, [name]: value }));
@@ -191,10 +238,11 @@ const toggleRoomAvailability = async (roomId) => {
                         <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
                           {currency} {item.pricePerNight}
                         </td>
-                        <td className='py-3 px-4 border-t border-gray-300 text-sm text-red-500
-                        text-center'>
-                            <label className='relative inline-flex items-center cursor-pointer
-                            text-gray-900 gap-3'>
+                        <td className='py-3 px-4 border-t border-gray-300 text-sm text-center'>
+                          <div className='flex items-center justify-center gap-3'>
+                            <button onClick={()=>openEditRoom(item)} className='px-2 py-1 border rounded text-sm'>Sửa</button>
+                            <button onClick={()=>deleteRoomById(item._id)} className='px-2 py-1 border rounded text-sm text-red-500'>Xóa</button>
+                            <label className='relative inline-flex items-center cursor-pointer text-gray-900 gap-3'>
                                 <input onChange={() => toggleRoomAvailability(item._id)} 
                                 type='checkbox' className='sr-only' checked={item.isAvailable}/>
                                 <div className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${
@@ -205,8 +253,8 @@ const toggleRoomAvailability = async (roomId) => {
                                     item.isAvailable ? 'translate-x-5' : 'translate-x-0'
                                   }`}></span>
                                 </div>
-                                
                             </label>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -214,6 +262,24 @@ const toggleRoomAvailability = async (roomId) => {
                 </tbody>
           </table>
         </div>
+
+        {editingRoom && (
+          <div className='fixed inset-0 flex items-center justify-center bg-black/40'>
+            <div className='bg-white p-6 rounded w-full max-w-lg'>
+              <h3 className='font-bold mb-4'>Chỉnh sửa phòng</h3>
+              <div className='flex flex-col gap-2'>
+                <input name='roomType' value={roomForm.roomType} onChange={handleRoomChange} placeholder='Tên phòng' className='p-2 border' />
+                <input name='pricePerNight' value={roomForm.pricePerNight} onChange={handleRoomChange} placeholder='Giá / đêm' className='p-2 border' />
+                <input name='amenities' value={roomForm.amenities} onChange={handleRoomChange} placeholder='Amenities (comma separated)' className='p-2 border' />
+              </div>
+              <div className='flex justify-end gap-2 mt-4'>
+                <button className='px-4 py-2 border rounded' onClick={()=>setEditingRoom(null)}>Hủy</button>
+                <button className='px-4 py-2 bg-blue-600 text-white rounded' onClick={saveRoom}>Lưu</button>
+              </div>
+            </div>
+          </div>
+        )}
+
     </div>
   )
 }
