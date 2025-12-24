@@ -106,10 +106,10 @@ export const facilityIcons = {
 
 // For Room Details Page
 export const roomCommonData = [
-    { icon: assets.homeIcon, title: "Clean & Safe Stay", description: "A well-maintained and hygienic space just for you." },
-    { icon: assets.badgeIcon, title: "Enhanced Cleaning", description: "This host follows Staybnb's strict cleaning standards." },
-    { icon: assets.locationFilledIcon, title: "Excellent Location", description: "90% of guests rated the location 5 stars." },
-    { icon: assets.heartIcon, title: "Smooth Check-In", description: "100% of guests gave check-in a 5-star rating." },
+    { icon: assets.homeIcon, title: "Nơi ở sạch sẽ và an toàn", description: "Không gian được bảo trì tốt và đảm bảo vệ sinh dành cho bạn." },
+    { icon: assets.badgeIcon, title: "Vệ sinh nâng cao", description: "Chủ nhà tuân thủ các tiêu chuẩn vệ sinh nghiêm ngặt của Staybnb." },
+    { icon: assets.locationFilledIcon, title: "Vị trí tuyệt vời", description: "90% khách đánh giá vị trí 5 sao." },
+    { icon: assets.heartIcon, title: "Nhận phòng suôn sẻ", description: "100% khách đánh giá thủ tục nhận phòng 5 sao." },
 ];
 
 // User Dummy Data
