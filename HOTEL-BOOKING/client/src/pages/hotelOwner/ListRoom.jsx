@@ -7,8 +7,11 @@ import { toast } from 'react-hot-toast';
 const ListRoom = () => {
 
   const [rooms, setRooms] = useState([]);
+  const [hotel, setHotel] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', address: '', contact: '', city: '' });
 
-  const {axios, getToken, user, currency} = useAppContext();
+  const {axios, getToken, user, currency, navigate} = useAppContext();
 
 
   // Fetch rooms of the Hotel Owner
@@ -25,6 +28,20 @@ const ListRoom = () => {
           }
     } catch (error) {
       toast.error(error.message);
+    }
+  }
+
+  // Fetch hotel information for owner
+  const fetchHotel = async () => {
+    try {
+      const token = await getToken({ template: 'backend' });
+      const { data } = await axios.get('/api/hotels/owner', { headers: { Authorization: `Bearer ${token}` } });
+      if (data.success) {
+        setHotel(data.hotel);
+        setEditForm({ name: data.hotel.name || '', address: data.hotel.address || '', contact: data.hotel.contact || '', city: data.hotel.city || '' });
+      }
+    } catch (error) {
+      // no hotel yet is OK
     }
   }
 
@@ -56,8 +73,47 @@ const toggleRoomAvailability = async (roomId) => {
   useEffect(() => {
     if(user){
       fetchRooms();
+      fetchHotel();
     }
   }, [user])
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  }
+
+  const saveHotel = async () => {
+    try {
+      const token = await getToken({ template: 'backend' });
+      const { data } = await axios.put(`/api/hotels/${hotel._id}`, editForm, { headers: { Authorization: `Bearer ${token}` } });
+      if (data.success) {
+        toast.success('Cập nhật thông tin khách sạn thành công');
+        setHotel(data.hotel);
+        setEditing(false);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Lỗi khi cập nhật khách sạn');
+    }
+  }
+
+  const deleteHotel = async () => {
+    if (!hotel) return;
+    if (!confirm('Bạn có chắc muốn xóa khách sạn? Tất cả phòng và booking liên quan sẽ bị xóa.')) return;
+    try {
+      const token = await getToken({ template: 'backend' });
+      const { data } = await axios.delete(`/api/hotels/${hotel._id}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (data.success) {
+        toast.success('Khách sạn đã được xóa');
+        setHotel(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Lỗi khi xóa khách sạn');
+    }
+  }
 
   
 
@@ -66,7 +122,47 @@ const toggleRoomAvailability = async (roomId) => {
         <Title align='left' font='Be Vietnam Pro' title='Danh sách phòng' 
         subTitle='Xem, chỉnh sửa hoặc quản lý tất cả các phòng đã được đăng. 
         Hãy luôn cập nhật thông tin mới nhất để mang đến trải nghiệm tốt nhất cho người dùng.'/>
-        <p className='text-gray-500 mt-8'>Các phòng</p>
+        <p className='text-gray-500 mt-8'>Thông tin khách sạn</p>
+
+        {hotel ? (
+          <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg p-4 mt-3'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='font-bold text-lg'>{hotel.name}</p>
+                <p className='text-sm text-gray-500'>{hotel.address} • {hotel.city}</p>
+                <p className='text-sm text-gray-500'>Liên hệ: {hotel.contact}</p>
+              </div>
+              <div className='flex gap-2'>
+                <button className='px-3 py-1 border rounded' onClick={()=>setEditing(true)}>Chỉnh sửa</button>
+                <button className='px-3 py-1 border rounded text-red-500' onClick={deleteHotel}>Xóa</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg p-4 mt-3'>
+            <p className='text-gray-500'>Bạn chưa đăng ký khách sạn. Vui lòng thêm một khách sạn để bắt đầu đăng phòng.</p>
+          </div>
+        )}
+
+        {editing && (
+          <div className='fixed inset-0 flex items-center justify-center bg-black/40'>
+            <div className='bg-white p-6 rounded w-full max-w-lg'>
+              <h3 className='font-bold mb-4'>Chỉnh sửa thông tin khách sạn</h3>
+              <div className='flex flex-col gap-2'>
+                <input name='name' value={editForm.name} onChange={handleEditChange} placeholder='Tên' className='p-2 border' />
+                <input name='address' value={editForm.address} onChange={handleEditChange} placeholder='Địa chỉ' className='p-2 border' />
+                <input name='city' value={editForm.city} onChange={handleEditChange} placeholder='Thành phố' className='p-2 border' />
+                <input name='contact' value={editForm.contact} onChange={handleEditChange} placeholder='Liên hệ' className='p-2 border' />
+              </div>
+              <div className='flex justify-end gap-2 mt-4'>
+                <button className='px-4 py-2 border rounded' onClick={()=>setEditing(false)}>Hủy</button>
+                <button className='px-4 py-2 bg-blue-600 text-white rounded' onClick={saveHotel}>Lưu</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <p className='text-gray-500 mt-6'>Các phòng</p>
         <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3'>
           <table className='w-full'>
             <thead className='bg-gray-50'>
