@@ -226,17 +226,17 @@ const toggleRoomAvailability = async (roomId) => {
                 </thead>
                 <tbody className='text-sm'>
                   {
-                    rooms.map((item, index)=>(
+                    rooms.filter(Boolean).map((item, index)=>(
                       <tr key={index}>
                         <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
-                          {item.roomType}
+                          {item?.roomType || '—'}
                         </td>
                         <td className='py-3 px-4 text-gray-700 border-t border-gray-300
                         max-sm:hidden'>
-                          {item.amenities.join(',')}
+                          {(item?.amenities || []).join(', ')}
                         </td>
                         <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
-                          {currency} {item.pricePerNight}
+                          {currency} {item?.pricePerNight ?? '—'}
                         </td>
                         <td className='py-3 px-4 border-t border-gray-300 text-sm text-center'>
                           <div className='flex items-center justify-center gap-3'>
@@ -244,13 +244,13 @@ const toggleRoomAvailability = async (roomId) => {
                             <button onClick={()=>deleteRoomById(item._id)} className='px-2 py-1 border rounded text-sm text-red-500'>Xóa</button>
                             <label className='relative inline-flex items-center cursor-pointer text-gray-900 gap-3'>
                                 <input onChange={() => toggleRoomAvailability(item._id)} 
-                                type='checkbox' className='sr-only' checked={item.isAvailable}/>
+                                type='checkbox' className='sr-only' checked={item?.isAvailable} />
                                 <div className={`w-12 h-7 rounded-full relative transition-colors duration-300 ${
-                                  item.isAvailable ? 'bg-blue-600' : 'bg-slate-300'
+                                  item?.isAvailable ? 'bg-blue-600' : 'bg-slate-300'
                                 }`}>
                                   <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full 
                                   transition-transform duration-300 ease-in-out ${
-                                    item.isAvailable ? 'translate-x-5' : 'translate-x-0'
+                                    item?.isAvailable ? 'translate-x-5' : 'translate-x-0'
                                   }`}></span>
                                 </div>
                             </label>
