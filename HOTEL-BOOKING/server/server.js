@@ -72,6 +72,21 @@ app.get('/api/health', (req, res) => {
   res.json({success: true, status: 'ok'});
 });
 
+// Debug endpoint: report whether Stripe secret key is present (does NOT return secret value)
+app.get('/api/debug/stripe', (req, res) => {
+  try {
+    const present = Boolean(process.env.STRIPE_SECRET_KEY);
+    res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "https://btlweb-pi.vercel.app");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.json({ success: true, stripeConfigured: present });
+  } catch (err) {
+    console.error('debug stripe endpoint error', err);
+    res.status(500).json({ success: false, message: 'Debug endpoint error' });
+  }
+});
+
 app.use('/api/user', userRouter);
 app.use('/api/hotels', hotelRouter);
 app.use('/api/rooms', roomRouter);
