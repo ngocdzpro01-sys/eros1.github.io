@@ -193,16 +193,27 @@ export const stripePayment = async (req, res)=>{
             }
         ];
 
-        // create checkout session
-        const session = await stripeInstance.checkout.sessions.create({
-            line_items,
-            mode: 'payment',
-            success_url: `${origin}/loader/my-bookings`,
-            cancel_url: `${origin}/my-bookings`,
-            metadata: {
-                bookingId,
-            }
-        });
+        // create checkout session with dedicated error handling
+        let session;
+        try {
+            session = await stripeInstance.checkout.sessions.create({
+                line_items,
+                mode: 'payment',
+                success_url: `${origin || process.env.FRONTEND_URL || 'https://btlweb-pi.vercel.app'}/loader/my-bookings`,
+                cancel_url: `${origin || process.env.FRONTEND_URL || 'https://btlweb-pi.vercel.app'}/my-bookings`,
+                metadata: {
+                    bookingId,
+                }
+            });
+        } catch (stripeError) {
+            console.error('stripe.create.session error:', {
+                message: stripeError.message,
+                type: stripeError.type,
+                code: stripeError.code,
+                raw: stripeError.raw && stripeError.raw.message ? stripeError.raw.message : undefined,
+            });
+            return res.status(500).json({ success: false, message: stripeError.message || 'Failed to create Stripe session' });
+        }
 
         console.log('stripe session created', { sessionId: session.id, url: session.url });
 
