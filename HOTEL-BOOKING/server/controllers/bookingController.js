@@ -151,13 +151,25 @@ export const getHotelBookings = async (req, res) => {
 export const stripePayment = async (req, res)=>{
 
     try {
+        console.log('stripePayment invoked', { body: req.body, headers: req.headers, user: req.user?._id });
         const { bookingId } = req.body;
 
+        if(!bookingId) return res.status(400).json({ success: false, message: 'bookingId is required' });
+
         const booking = await Booking.findById(bookingId);
+        if(!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+        // ensure the logged-in user owns the booking
+        if(String(booking.user) !== String(req.user._id)){
+            console.warn('User attempting to pay for a booking they do not own', { bookingId, user: req.user._id });
+            return res.status(403).json({ success: false, message: 'Not authorized to pay for this booking' });
+        }
 
         const roomData = await Room.findById(booking.room).populate('hotel');
+        if(!roomData) return res.status(404).json({ success: false, message: 'Room not found' });
 
         const totalPrice = booking.totalPrice;
+        if(typeof totalPrice !== 'number') return res.status(400).json({ success: false, message: 'Invalid booking total price' });
 
         const { origin } = req.headers;
 
@@ -166,15 +178,16 @@ export const stripePayment = async (req, res)=>{
         const line_items = [
             {
                 price_data: {
-                    currency: 'usd',
+                    currency: process.env.CURRENCY?.toLowerCase() || 'usd',
                     product_data: {
                         name: roomData.hotel.name,
                     },
-                    unit_amount: totalPrice * 100,
+                    unit_amount: Math.round(totalPrice * 100),
                 },
                 quantity: 1,
             }
-        ]
+        ];
+
         // create checkout session
         const session = await stripeInstance.checkout.sessions.create({
             line_items,
@@ -186,14 +199,17 @@ export const stripePayment = async (req, res)=>{
             }
         });
 
+        console.log('stripe session created', { sessionId: session.id, url: session.url });
+
         res.json({
             success: true,
             url: session.url
-        })
+        });
 
 
     } catch (error) {
-        res.json({success: false, message: "Thanh toán không thành công!"});
+        console.error('stripePayment error:', error);
+        res.status(500).json({success: false, message: error.message || "Thanh toán không thành công!"});
     }
 
 }
