@@ -17,7 +17,39 @@ connectCloudinary();
 
 const app = express();
 
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+// Allowed front-end origins (add more as needed or set FRONTEND_URL in .env)
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "https://btlweb-pi.vercel.app",
+  "http://localhost:5173"
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow non-browser clients (Postman, curl) with undefined origin
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy: Origin not allowed"));
+    }
+  },
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// Ensure CORS headers for all responses (covers error responses)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "https://btlweb-pi.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
 
 // API to listen to Stripe Webhooks
 app.post('/api/stripe', express.raw({type: 'application/json'}), stripeWebhooks);
