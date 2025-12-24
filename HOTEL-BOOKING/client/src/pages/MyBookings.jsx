@@ -83,24 +83,29 @@ const MyBookings = () => {
                 <div className='w-1/3'>Payment</div>
             </div>
 
-            {bookings.map((booking)=>(
-                <div key={booking._id} className='grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 py-6 first:border-t gap-4'>
+            {bookings.map((booking)=>{
+                // Defensive rendering: room or nested fields may be null if the room was deleted
+                const room = booking.room || null;
+                const hotelInfo = booking.hotel || null;
+                const imageSrc = (room && Array.isArray(room.images) && room.images.length) ? room.images[0] : assets.roomImg1;
+                if (!room) console.debug('Booking references missing room', booking._id);
+
+                return (
+                  <div key={booking._id} className='grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 py-6 first:border-t gap-4'>
                     {/* Hotel Details */}
                     <div className='flex flex-col md:flex-row gap-4'>
-                        <img src={booking.room.images[0]} alt="hotel-img"
+                        <img src={imageSrc} alt={room ? room.roomType : 'Room deleted'}
                         className='w-full md:w-44 h-32 md:h-auto rounded shadow object-cover' />
                         <div className='flex flex-col gap-1.5'>
-                            <p className='font-lora text-2xl'>{booking.hotel.name}
-                            <span className='font-inter text-sm'>({booking.room.roomType})</span>
+                            <p className='font-lora text-2xl'>{hotelInfo?.name || 'Hotel removed'}
+                            <span className='font-inter text-sm'>({room?.roomType || 'Phòng đã bị xóa'})</span>
                             </p>
                             <div className='flex items-center gap-1 text-sm text-gray-500'>
-                                <img src={assets.locationIcon} alt="location-icon"
-                                />
-                                <span>{booking.room.hotel.address}</span>
+                                <img src={assets.locationIcon} alt="location-icon" />
+                                <span>{room?.hotel?.address || hotelInfo?.address || '—'}</span>
                             </div>
                             <div className='flex items-center gap-1 text-sm text-gray-500'>
-                                <img src={assets.guestsIcon} alt="guests-icon"
-                                />
+                                <img src={assets.guestsIcon} alt="guests-icon" />
                                 <span>Guests: {booking.guests}</span>
                             </div>
                             <p className='text-base'>Total: ${booking.totalPrice}</p>
@@ -124,22 +129,20 @@ const MyBookings = () => {
                     {/* Payment */}
                     <div className='flex flex-col items-start justify-center pt-3'>
                         <div>
-                            <div className={ `h-3 w-3 rounded-full ${booking.isPaid ?
-                                "bg-green-500" : "bg-red-500"}`}></div>
-                            <p className={ `text-sm ${booking.isPaid ?
-                                "text-green-500" : "text-red-500"}`}>
+                            <div className={ `h-3 w-3 rounded-full ${booking.isPaid ? "bg-green-500" : "bg-red-500"}`}></div>
+                            <p className={ `text-sm ${booking.isPaid ? "text-green-500" : "text-red-500"}`}>
                                     {booking.isPaid ? "Đã trả" : "Chưa trả"}    
                             </p>   
                         </div>
                         {!booking.isPaid && (
-                            <button onClick={()=>handlePayment(booking._id)} className='px-4 py-1.5 mt-4 text-xs border border-gray-400
-                            rounded-full hover:bg-gray-50 transition-all cursor-pointer'>
+                            <button onClick={()=>handlePayment(booking._id)} className='px-4 py-1.5 mt-4 text-xs border border-gray-400 rounded-full hover:bg-gray-50 transition-all cursor-pointer'>
                                 Thanh toán
                             </button>
                         )}
                     </div>
-                </div>
-            ))}
+                  </div>
+                )
+            })}
 
 
         </div>
