@@ -85,14 +85,15 @@ const HotelReg = () => {
                 {/* Select City Drop Down */}
                 <div className='w-full mt-4 max-w-60 mr-auto'>
                     <label htmlFor="city" className='font-bold text-gray-500'>City</label>
-                    <select id="city" onChange={(e)=> setCity(e.target.value)}
-                    value={city} className='border border-gray-200
-                    rounded w-full px-3 py-2.5 mt-1 outline-indigo-500 text-sm font-light' required>
-                        <option value="">Select City</option>
-                        {cities.map((city)=>(
-                            <option key={city} value={city}>{city}</option>
+                    {/* Allow typing city name while still providing suggestions */}
+                    <input id="city" list="city-list" onChange={(e)=> setCity(e.target.value)}
+                    value={city} type="text" placeholder="Nhập tên thành phố" className='border border-gray-200
+                    rounded w-full px-3 py-2.5 mt-1 outline-indigo-500 text-sm font-light' required />
+                    <datalist id="city-list">
+                        {cities.map((c)=> (
+                            <option key={c} value={c} />
                         ))}
-                    </select>
+                    </datalist>
                 </div>
                 <button className='bg-indigo-500 hover:bg-indigo-700 transition-all
                 text-white mr-auto px-6 py-2 rounded cursor-pointer mt-6'>
