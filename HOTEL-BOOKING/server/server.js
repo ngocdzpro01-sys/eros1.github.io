@@ -39,7 +39,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 // Ensure CORS headers for all responses (covers error responses)
 app.use((req, res, next) => {
