@@ -90,9 +90,9 @@ export const exclusiveOffers = [
 
 // Testimonials Dummy Data
 export const testimonials = [
-    { id: 1, name: "Emma Rodriguez", address: "Barcelona, Spain", image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200", rating: 5, review: "I've used many booking platforms before, but none compare to the personalized experience and attention to detail that QuickStay provides." },
-    { id: 2, name: "Liam Johnson", address: "New York, USA", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200", rating: 4, review: "QuickStay exceeded my expectations. The booking process was seamless, and the hotels were absolutely top-notch. Highly recommended!" },
-    { id: 3, name: "Sophia Lee", address: "Seoul, South Korea", image: "https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=200", rating: 5, review: "Amazing service! I always find the best luxury accommodations through QuickStay. Their recommendations never disappoint!" }
+    { id: 1, name: "Nguyễn Minh Vũ", address: "Barcelona, Spain", image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200", rating: 5, review: "Tôi đã sử dụng nhiều nền tảng đặt phòng trước đây, nhưng không nền tảng nào sánh được với trải nghiệm cá nhân hóa và sự chu đáo trong từng chi tiết mà QuickStay mang lại." },
+    { id: 2, name: "Trần Duy Mạnh", address: "New York, USA", image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200", rating: 4, review: "QuickStay vượt xa mong đợi của tôi. Quá trình đặt phòng rất trơn tru, và các khách sạn thực sự đẳng cấp. Rất khuyến nghị!" },
+    { id: 3, name: "Hoàng Trường Giang", address: "Seoul, South Korea", image: "https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=200", rating: 5, review: "Dịch vụ tuyệt vời! Tôi luôn tìm được những chỗ ở sang trọng tốt nhất thông qua QuickStay. Những gợi ý của họ không bao giờ làm tôi thất vọng!" }
 ];
 
 // Facility Icon
