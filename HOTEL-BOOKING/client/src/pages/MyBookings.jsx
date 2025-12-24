@@ -40,8 +40,6 @@ const MyBookings = () => {
 
     const handlePayment = async (bookingId) => {
         try {
-            const token = await getToken({ template: 'backend' });
-            if(!token) return toast.error('Không thể lấy token xác thực');
             const {data} = await axios.post(`/api/bookings/stripe-payment`, 
                 {bookingId}, { 
                 headers: {
@@ -54,8 +52,7 @@ const MyBookings = () => {
                 toast.error(data.message);
             }
         } catch (error) {
-            console.error('handlePayment error:', error);
-            toast.error(error.message || 'Lỗi khi xử lý thanh toán');
+            toast.error(error.message);
         }
     }
 
