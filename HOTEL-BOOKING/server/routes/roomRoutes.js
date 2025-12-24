@@ -10,7 +10,7 @@ roomRouter.post('/', upload.array('images', 4), protect, creatRoom);
 roomRouter.get('/', getRooms);
 roomRouter.get('/owner', protect, getOwnerRooms);
 roomRouter.post('/toggle-availability', protect, toggleRoomAvailability);
-
-
+roomRouter.put('/:id', protect, updateRoom);
+roomRouter.delete('/:id', protect, deleteRoom);
 
 export default roomRouter;

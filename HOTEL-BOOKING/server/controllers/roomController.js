@@ -82,3 +82,48 @@ export const toggleRoomAvailability = async (req, res)=>{
     }
 }
 
+// Update a room (only owner of the hotel)
+export const updateRoom = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { roomType, pricePerNight, amenities } = req.body;
+
+        const room = await Room.findById(id);
+        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+
+        const hotel = await Hotel.findById(room.hotel);
+        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
+        if (String(hotel.owner) !== String(req.user._id)) return res.status(403).json({ success: false, message: 'Not authorized' });
+
+        room.roomType = roomType ?? room.roomType;
+        room.pricePerNight = pricePerNight ?? room.pricePerNight;
+        if (amenities) room.amenities = Array.isArray(amenities) ? amenities : amenities.split(',').map(s => s.trim());
+
+        await room.save();
+        res.json({ success: true, message: 'Room updated', room });
+    } catch (error) {
+        console.error('updateRoom error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+// Delete a room (only hotel owner)
+export const deleteRoom = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const room = await Room.findById(id);
+        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+
+        const hotel = await Hotel.findById(room.hotel);
+        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
+        if (String(hotel.owner) !== String(req.user._id)) return res.status(403).json({ success: false, message: 'Not authorized' });
+
+        // Optionally, could remove images from cloudinary here
+        await Room.findByIdAndDelete(id);
+        res.json({ success: true, message: 'Room deleted' });
+    } catch (error) {
+        console.error('deleteRoom error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
