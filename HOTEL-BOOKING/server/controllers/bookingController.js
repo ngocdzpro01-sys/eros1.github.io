@@ -173,6 +173,11 @@ export const stripePayment = async (req, res)=>{
 
         const { origin } = req.headers;
 
+        if(!process.env.STRIPE_SECRET_KEY){
+            console.error('Missing STRIPE_SECRET_KEY env var');
+            return res.status(500).json({ success: false, message: 'Stripe secret key not configured on server' });
+        }
+
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
         const line_items = [
