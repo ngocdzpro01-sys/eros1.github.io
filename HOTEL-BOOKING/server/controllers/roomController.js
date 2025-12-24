@@ -36,6 +36,7 @@ export const creatRoom = async (req, res)=>{
 
 // API to get all rooms
 export const getRooms = async (req, res)=>{
+    console.log('getRooms handler invoked');
     try {
         const rooms = await Room.find({isAvailable: true}).populate({
             path: "hotel",
@@ -44,9 +45,11 @@ export const getRooms = async (req, res)=>{
                 select: 'image',
             }
         }).sort({createdAt: -1});
+        console.log('getRooms: found', Array.isArray(rooms) ? rooms.length : 0);
         res.json({success: true, rooms});
     } catch (error) {
-        res.json({success: false, message: error.message});
+        console.error('getRooms error', error);
+        res.status(500).json({success: false, message: error.message});
     }
 }
 
