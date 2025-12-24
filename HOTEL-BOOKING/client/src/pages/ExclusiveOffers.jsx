@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import Title from './Title'
+import OfferModal from '../components/OfferModal'
 import { assets, exclusiveOffers as fallbackOffers } from '../assets/assets'
 
 const ExclusiveOffers = () => {
   const [offers, setOffers] = useState([])
+  const [selectedOffer, setSelectedOffer] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -77,7 +79,11 @@ const ExclusiveOffers = () => {
         {offers.map(item => (
           <div
             key={item._id}
-            className='group relative flex flex-col items-start justify-between gap-1 pt-12 md:pt-18 px-4 rounded-xl text-white bg-no-repeat bg-cover bg-center'
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedOffer(item)}
+            onKeyDown={(e) => { if (e.key === 'Enter') setSelectedOffer(item) }}
+            className='group relative flex flex-col items-start justify-between gap-1 pt-12 md:pt-18 px-4 rounded-xl text-white bg-no-repeat bg-cover bg-center cursor-pointer'
             style={{ backgroundImage: `url(${item.image})` }}
           >
             <p className='px-3 py-1 absolute top-4 left-4 text-xs bg-white text-gray-800 font-bold rounded-full'>
@@ -94,7 +100,7 @@ const ExclusiveOffers = () => {
               </p>
             </div>
 
-            <button className='flex items-center gap-2 font-bold cursor-pointer mt-4 mb-5'>
+            <button onClick={(e)=>{e.stopPropagation(); setSelectedOffer(item)}} className='flex items-center gap-2 font-bold cursor-pointer mt-4 mb-5'>
               Xem ưu đãi
               <img
                 className='invert group-hover:translate-x-1 transition-all'
@@ -105,6 +111,10 @@ const ExclusiveOffers = () => {
           </div>
         ))}
       </div>
+
+      {selectedOffer && (
+        <OfferModal offer={selectedOffer} onClose={() => setSelectedOffer(null)} />
+      )}
     </div>
   )
 }
