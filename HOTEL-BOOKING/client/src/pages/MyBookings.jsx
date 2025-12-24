@@ -39,7 +39,10 @@ const MyBookings = () => {
     }
 
     const handlePayment = async (bookingId) => {
+        setLoading(true);
         try {
+            // ensure we get a fresh backend token
+            const token = await getToken({ template: 'backend' });
             const {data} = await axios.post(`/api/bookings/stripe-payment`, 
                 {bookingId}, { 
                 headers: {
@@ -49,10 +52,13 @@ const MyBookings = () => {
             if(data.success){
                 window.location.href = data.url;
             } else {
-                toast.error(data.message);
+                toast.error(data.message || 'Thanh toán thất bại');
             }
         } catch (error) {
-            toast.error(error.message);
+            console.error('handlePayment error:', error);
+            toast.error(error.message || 'Lỗi khi xử lý thanh toán');
+        } finally {
+            setLoading(false);
         }
     }
 
