@@ -62,14 +62,42 @@ app.use(clerkMiddleware());
 app.use("/api/clerk", clerkWebhooks);
 
 app.get("/", (req, res) => res.send("API is working"));
+
+// Lightweight health check to verify deployment
+app.get('/api/health', (req, res) => {
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "https://btlweb-pi.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.json({success: true, status: 'ok'});
+});
+
 app.use('/api/user', userRouter);
 app.use('/api/hotels', hotelRouter);
 app.use('/api/rooms', roomRouter);
 app.use('/api/bookings', bookingRouter);
 
+// Catch-all error handler — ensures responses include CORS headers
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "https://btlweb-pi.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.status(500).json({ success: false, message: err?.message || 'Internal Server Error' });
+});
 
+// Process-level logging to aid debugging on serverless platforms
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {});
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
 
