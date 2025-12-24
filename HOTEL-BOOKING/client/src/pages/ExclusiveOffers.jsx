@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Title from './Title'
-import { assets } from '../assets/assets'
+import { assets, exclusiveOffers as fallbackOffers } from '../assets/assets'
 
 const ExclusiveOffers = () => {
   const [offers, setOffers] = useState([])
@@ -10,12 +10,25 @@ const ExclusiveOffers = () => {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/offers')
-        if (!res.ok) throw new Error('Không thể tải ưu đãi')
+        // Use Vite env VITE_API_URL when provided, otherwise use relative path (same origin)
+        const API_BASE = import.meta.env.VITE_API_URL || ''
+        const res = await fetch(`${API_BASE}/api/offers`)
+        if (!res.ok) {
+          // if API returns an error, fall back to static offers
+          console.debug('Offers API returned non-ok status, falling back');
+          setOffers(fallbackOffers)
+          return
+        }
         const data = await res.json()
-        setOffers(data)
+        // If API returned an empty array or invalid data, fallback
+        if (!Array.isArray(data) || data.length === 0) {
+          setOffers(fallbackOffers)
+        } else {
+          setOffers(data)
+        }
       } catch (err) {
-        setError(err.message)
+        console.warn('Failed to fetch offers, using fallback data:', err.message)
+        setOffers(fallbackOffers)
       } finally {
         setLoading(false)
       }
