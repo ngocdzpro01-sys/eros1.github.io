@@ -193,8 +193,8 @@ const toggleRoomAvailability = async (roomId) => {
         )}
 
         {editing && (
-          <div className='fixed inset-0 flex items-center justify-center bg-black/40'>
-            <div className='bg-white p-6 rounded w-full max-w-lg'>
+          <div className='fixed inset-0 flex items-center justify-center bg-black/40 z-[9999]'>
+            <div className='bg-white p-6 rounded w-full max-w-lg relative z-[10000]'>
               <h3 className='font-bold mb-4'>Chỉnh sửa thông tin khách sạn</h3>
               <div className='flex flex-col gap-2'>
                 <input name='name' value={editForm.name} onChange={handleEditChange} placeholder='Tên' className='p-2 border' />
